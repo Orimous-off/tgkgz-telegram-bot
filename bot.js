@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const TelegramBot = require("node-telegram-bot-api");
-const db = require('./firebase');
+// const db = require('./firebase');
 const axios = require("axios");
 
 const app = express();
@@ -79,18 +79,18 @@ bot.on("message", async (msg) => {
         bot.sendMessage(chatId, newsEnabled ? "✅ Новости включены!" : "❌ Новости отключены!");
     }
 
-    if (text === "❓ Часто задаваемые вопросы") {
-        try {
-            const faq = await getFAQ();
-            const message = faq && faq.trim() !== ""
-                ? `📋 <b>Часто задаваемые вопросы</b> 📋\n\n${faq}`
-                : "FAQ пока не добавлены.";
-            bot.sendMessage(chatId, message, { parse_mode: "HTML" });
-        } catch (error) {
-            console.error("Ошибка при получении FAQ:", error);
-            bot.sendMessage(chatId, "Произошла ошибка при загрузке FAQ. Попробуйте позже.");
-        }
-    }
+    // if (text === "❓ Часто задаваемые вопросы") {
+    //     try {
+    //         const faq = await getFAQ();
+    //         const message = faq && faq.trim() !== ""
+    //             ? `📋 <b>Часто задаваемые вопросы</b> 📋\n\n${faq}`
+    //             : "FAQ пока не добавлены.";
+    //         bot.sendMessage(chatId, message, { parse_mode: "HTML" });
+    //     } catch (error) {
+    //         console.error("Ошибка при получении FAQ:", error);
+    //         bot.sendMessage(chatId, "Произошла ошибка при загрузке FAQ. Попробуйте позже.");
+    //     }
+    // }
 
     if (text === "🎓 Как поступить") {
         try {
@@ -217,17 +217,17 @@ async function getLatestNews() {
     }
 }
 
-async function getFAQ() {
-    const snapshot = await db.collection('faq').get();
-    if (snapshot.empty) {
-        return "";
-    }
-    return snapshot.docs.map((doc, index) => {
-        const data = doc.data();
-        // Форматируем каждый FAQ с номером, summary и details
-        return `${index + 1}. <b>${data.summary}</b>\n${data.details}`;
-    }).join("\n\n");
-}
+// async function getFAQ() {
+//     const snapshot = await db.collection('faq').get();
+//     if (snapshot.empty) {
+//         return "";
+//     }
+//     return snapshot.docs.map((doc, index) => {
+//         const data = doc.data();
+//         // Форматируем каждый FAQ с номером, summary и details
+//         return `${index + 1}. <b>${data.summary}</b>\n${data.details}`;
+//     }).join("\n\n");
+// }
 
 // Функция получения шагов поступления
 function getAdmissionSteps() {
