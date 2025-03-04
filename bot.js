@@ -1,48 +1,14 @@
 require("dotenv").config();
-const express = require('express');
-const bodyParser = require('body-parser');
 const TelegramBot = require("node-telegram-bot-api");
 const db = require('./firebase');
 const axios = require("axios");
 
-const app = express();
-app.use(bodyParser.json());
-
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
-
-// Устанавливаем webhook
-const webhookPath = `/bot${process.env.TELEGRAM_BOT_TOKEN}`;
-const webhookUrl = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}${webhookPath}`;
-bot.setWebHook(webhookUrl).then(() => {
-    console.log(`Webhook установлен: ${webhookUrl}`);
-}).catch(err => {
-    console.error(`Ошибка установки webhook: ${err}`);
-});
-
-// Обрабатываем входящие обновления от Telegram
-app.post(webhookPath, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
 let newsEnabled = true; // Флаг включения/выключения новостей
+
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 const userRequests = {}; // Храним активные запросы пользователей
-
-// Главное меню команд
-bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, "Привет! Выберите команду:", {
-        reply_markup: {
-            keyboard: [
-                ["📰 Включить/выключить новости"],
-                ["❓ Часто задаваемые вопросы"],
-                ["🎓 Как поступить"],
-                ["📞 Контактная информация", "✉️ Связаться с нами"],
-            ],
-            resize_keyboard: true,
-        },
-    });
-});
 
 const timelineData = [
     {
@@ -66,6 +32,19 @@ const timelineData = [
 ];
 
 // Главное меню команд
+bot.onText(/\/start/, (msg) => {
+    bot.sendMessage(msg.chat.id, "Привет! Выберите команду:", {
+        reply_markup: {
+            keyboard: [
+                ["📰 Включить/выключить новости"],
+                ["❓ Часто задаваемые вопросы"],
+                ["🎓 Как поступить"],
+                ["📞 Контакты", "✉️ Связаться с нами"],
+            ],
+            resize_keyboard: true,
+        },
+    });
+});
 
 // Включение/выключение новостей
 bot.on("message", async (msg) => {
@@ -83,7 +62,7 @@ bot.on("message", async (msg) => {
         try {
             const faq = await getFAQ();
             const message = faq && faq.trim() !== ""
-                ? `📋 <b>Часто задаваемые вопросы</b> 📋\n\n${faq}`
+                ? `📋 <b>Часто задаваемые вопросы</b>\n\n${faq}`
                 : "FAQ пока не добавлены.";
             bot.sendMessage(chatId, message, { parse_mode: "HTML" });
         } catch (error) {
@@ -246,10 +225,5 @@ setInterval(async () => {
         bot.sendMessage(123456789, `📰 Новость: ${news.text}\n\n[Читать дальше](${news.link})`, { parse_mode: "Markdown" });
     }
 }, 21600000); // 6 часов в миллисекундах
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
-});
 
 console.log("Бот запущен...");
