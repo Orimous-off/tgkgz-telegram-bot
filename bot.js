@@ -64,7 +64,7 @@ bot.onText(/\/start/, (msg) => {
     bot.sendMessage(msg.chat.id, "Привет! Выберите команду:", {
         reply_markup: {
             keyboard: [
-                ["📰 Включить/выключить новости", "📢 Последние новости"],
+                ["📰 Включить/выключить новости"],
                 ["❓ Часто задаваемые вопросы"],
                 ["🎓 Как поступить"],
                 ["📞 Контакты", "✉️ Связаться с нами"],
@@ -96,66 +96,6 @@ bot.on("message", async (msg) => {
             console.error("Ошибка при получении FAQ:", error);
             bot.sendMessage(chatId, "Произошла ошибка при загрузке FAQ. Попробуйте позже.");
         }
-    }
-
-    if (text === "📢 Последние новости") {
-        try {
-            await bot.sendMessage(chatId, "🔍 Получаем последние новости...");
-
-            const news = await getLatestNews();
-            if (!news || news.length === 0) {
-                await bot.sendMessage(chatId, "К сожалению, сейчас нет доступных новостей.");
-                return;
-            }
-
-            // Получаем только последние 5 новости для показа (изменено с 3 на 5)
-            const latestNews = news.slice(0, 5);
-
-            // Отправляем каждую новость отдельно
-            for (const post of latestNews) {
-                const messageText = `📰 *Новость:*\n\n${post.text}\n\n[Читать полностью](${post.link})`;
-
-                if (post.images && post.images.length > 0) {
-                    // Если есть изображения
-                    if (post.images.length === 1) {
-                        // Одно изображение с подписью
-                        await bot.sendPhoto(chatId, post.images[0], {
-                            caption: messageText,
-                            parse_mode: "Markdown"
-                        });
-                    } else {
-                        // Сначала текст
-                        await bot.sendMessage(chatId, messageText, { parse_mode: "Markdown" });
-
-                        // Затем группа изображений (до 5)
-                        const mediaGroup = post.images.slice(0, 5).map(image => ({
-                            type: 'photo',
-                            media: image
-                        }));
-
-                        await bot.sendMediaGroup(chatId, mediaGroup);
-                    }
-                } else if (post.videos && post.videos.length > 0) {
-                    // Если есть видео
-                    const video = post.videos[0];
-                    await bot.sendPhoto(chatId, video.preview, {
-                        caption: `${messageText}\n\n*Видео:* ${video.title}\n[Смотреть видео](${video.link})`,
-                        parse_mode: "Markdown"
-                    });
-                } else {
-                    // Просто текст
-                    await bot.sendMessage(chatId, messageText, { parse_mode: "Markdown" });
-                }
-
-                // Пауза между сообщениями
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-        } catch (error) {
-            console.error("Ошибка при получении новостей:", error);
-            bot.sendMessage(chatId, "Произошла ошибка при загрузке новостей. Попробуйте позже.");
-        }
-        return;
     }
 
     if (text === "🎓 Как поступить") {
