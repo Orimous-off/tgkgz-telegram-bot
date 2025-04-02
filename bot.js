@@ -4,6 +4,20 @@ const axios = require("axios");
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
+const express = require("express");
+const app = express();
+
+// Добавляем базовый маршрут для проверки
+app.get("/", (req, res) => {
+    res.send("Telegram Bot is running!");
+});
+
+// Запускаем сервер на порту, предоставленном Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
 let newsEnabled = true; // Флаг включения/выключения новостей
 
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
